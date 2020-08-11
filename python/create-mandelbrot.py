@@ -17,10 +17,14 @@ def CreateMandelbrotSet(size):
 
     mandelbrot_set = np.zeros([size, size], dtype=np.uint8)
 
-    low_limit_re = -2
-    high_limit_re = 2
-    low_limit_im = -2
-    high_limit_im = 2
+    #low_limit_re = -2
+    #high_limit_re = 2
+    #low_limit_im = -2
+    #high_limit_im = 2
+    low_limit_re = -0.5
+    high_limit_re = 0
+    low_limit_im = -1
+    high_limit_im = -0.5
 
     re_resolution = size/(high_limit_re - low_limit_re)
     im_resolution = size/(high_limit_im - low_limit_im)
