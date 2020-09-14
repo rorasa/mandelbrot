@@ -30,6 +30,8 @@ def CreateMandelbrotLine(limit, re_resolution, im_resolution, length, index):
 
 def CreateMandelbrotSet(size):
 
+    pool_size = 4
+
     limit = {
         "re_low": -0.5,
         "re_high": 0,
@@ -47,7 +49,7 @@ def CreateMandelbrotSet(size):
 
     LineFunction = partial(CreateMandelbrotLine, limit, re_resolution, im_resolution, size)
 
-    with Pool(4) as p:
+    with Pool(pool_size) as p:
         lines = p.map(LineFunction, tqdm(range(0, size)))
 
     return np.stack(lines, axis=1)
