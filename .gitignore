@@ -1,2 +1,6 @@
 .DS_Store
 python/env/
+scala/.idea/
+scala/project/project
+scala/project/target
+scala/target/
