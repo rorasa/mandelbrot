@@ -1,7 +1,6 @@
 package com.rorasa.mandelbrot
 
 import java.awt.image.BufferedImage
-import java.awt.Graphics2D
 import java.io.File
 import javax.imageio.ImageIO
 
@@ -93,14 +92,10 @@ class BinaryMatrix(){
   def init(size: Int): Unit = {
     this.image_size = size
 
-    var mat: Seq[Seq[Boolean]] = Seq()
-    for(i<-0 until size){
-      var row: Seq[Boolean] = Seq()
-      for(_<-0 until size){
-        row = row :+ false
-      }
-      mat = mat :+ row
-    }
+    println("Creating base matrix")
+
+    val row = Seq.fill(size){false}
+    val mat = Seq.fill(size){row}
 
     this.data = mat
   }
@@ -119,7 +114,6 @@ class BinaryMatrix(){
 
   def toBitmap(): Unit = {
     var image = new BufferedImage(this.image_size, this.image_size, BufferedImage.TYPE_INT_ARGB)
-    val grahics: Graphics2D = image.createGraphics
 
     val white = 0xFF << 24 | 0xFF << 16 | 0xFF << 8 | 0xFF
     val black = 0xFF << 24 | 0x00 << 16 | 0x00 << 8 | 0x00
@@ -134,8 +128,8 @@ class BinaryMatrix(){
       }
     }
 
-    val outputfile: File = new File("output.png")
-    ImageIO.write(image, "png", outputfile)
+    val outputFile: File = new File("output.png")
+    ImageIO.write(image, "png", outputFile)
   }
 
 }

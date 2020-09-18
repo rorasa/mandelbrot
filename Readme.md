@@ -16,3 +16,19 @@ Sub view
 | two threads   | 21.11s| 83.95s |1950.18s |
 | four threads  | 22.85s| 89.52s |2087.31s |
 
+## Scala
+
+Full view
+|               | 800px | 1600px | 8000px  |
+|---------------|-------|--------|---------|
+| single thread |       |        |         |
+| two threads   |       |        |         |
+| four threads  |       |        |         |
+
+Sub view
+|               | 800px | 1600px | 8000px  |
+|---------------|-------|--------|---------|
+| single thread | 7.08s | 39.36s  |         |
+| two theads    |       |        |         |
+| four threads  |       |        |         |
+
