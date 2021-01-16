@@ -29,11 +29,13 @@ int main(int argc, char** argv) {
     const String keys = 
         "{help h usage ? |      | print this message }"
         "{@image_size    |      | image size (must be dividable by 4}"
-        "{n iteration    | 1000 | Number of iteration used for convergence approximation}"
+        "{n iteration    | 100 | Number of iteration used for convergence approximation}"
         "{RU upper_real  | 2.0  | Upper bound of real part}"
         "{RL lower_real  | -2.0 | Lower bound of real part}"
         "{IU upper_img   | 2.0  | Upper bound of imaginary part}"
-        "{IL lower_img   | -2.0 | Lower bound of imaginary part}";
+        "{IL lower_img   | -2.0 | Lower bound of imaginary part}"
+        "{o output       | output.png | Name of the output image}"
+        "{v view         | false | Display the output onscreen}";
     CommandLineParser parser(argc, argv, keys);
     parser.about("Mandelbrot Generator v0.2");
 
@@ -54,9 +56,12 @@ int main(int argc, char** argv) {
     double upper_limit_re = parser.get<double>("upper_real");
     double lower_limit_im = parser.get<double>("lower_img");
     double upper_limit_im = parser.get<double>("upper_img");
+    String outputPath = parser.get<String>("o");
+    bool viewer = parser.get<bool>("v");
 
     cout << "Generating Mandelbrot set with the following configuration:" << endl;
 
+    cout << "Output path: "<< outputPath << endl;
     cout << "Image size: " << imageSize <<" x " << imageSize << endl;
     cout << "Iteration: "<< approx_iteration << endl;
     cout << "Upper limit of real part: "<< upper_limit_re << endl;
@@ -74,7 +79,7 @@ int main(int argc, char** argv) {
     Mat mandelbrot_coordinates_im = Mat::ones(imageSize, imageSize, CV_64FC1);
     Mat mandelbrot_value_re = Mat::zeros(imageSize, imageSize, CV_64FC1);
     Mat mandelbrot_value_im = Mat::zeros(imageSize, imageSize, CV_64FC1);
-    Mat outputImage = Mat::zeros(imageSize, imageSize, CV_8UC1);
+    Mat mandelbrotMember;
 
     // Initialise target mandelbrot coordinates 
     double re_resolution = (double)imageSize/(upper_limit_re - lower_limit_re);
@@ -88,6 +93,10 @@ int main(int argc, char** argv) {
         mandelbrot_coordinates_im(Range(imageSize-i-1,imageSize-i), Range::all()) = mandelbrot_coordinates_im(Range(imageSize-i-1,imageSize-i), Range::all()) * im;
     }
 
+    if (viewer){
+        namedWindow("Mandelbrot", WINDOW_AUTOSIZE);
+    }
+
     // Compute mandelbrot set
     for (int i=0; i<approx_iteration; i++){
         cout << "computing iteration " << i << endl;
@@ -95,26 +104,36 @@ int main(int argc, char** argv) {
                           mandelbrot_value_im, 
                           mandelbrot_coordinates_re,
                           mandelbrot_coordinates_im);
+
+        if (viewer){
+            mandelbrotMember = complexAbsolute(mandelbrot_value_re,mandelbrot_value_im) <= 2.0;
+            imshow("Mandelbrot", mandelbrotMember);
+            if (waitKey(30)=='q'){
+                break;
+            }
+        }
     }
 
     // find mandelbrot set membership
-    Mat mandelbrotMember = complexAbsolute(mandelbrot_value_re,mandelbrot_value_im) <= 2.0;
+    mandelbrotMember = complexAbsolute(mandelbrot_value_re,mandelbrot_value_im) <= 2.0;
     
     // namedWindow("RE Coordinates", WINDOW_AUTOSIZE);
     // imshow("RE Coordinates", mandelbrot_coordinates_re);
     // namedWindow("IM Coordinates", WINDOW_AUTOSIZE);
     // imshow("IM Coordinates", mandelbrot_coordinates_im);
-    namedWindow("Value RE", WINDOW_AUTOSIZE);
-    namedWindow("Value IM", WINDOW_AUTOSIZE);
-    double re_min, re_max, im_min, im_max;
-    minMaxLoc(mandelbrot_value_re, &re_min, &re_max);
-    imshow("Value RE", (mandelbrot_value_re-re_min)/(re_max-re_min));
-    minMaxLoc(mandelbrot_value_im, &im_min, &im_max);
-    imshow("Value IM", (mandelbrot_value_im-im_min)/(im_max-im_min));
-    namedWindow("Mandelbrot", WINDOW_AUTOSIZE);
-    imshow("Mandelbrot", mandelbrotMember);
+    // namedWindow("Value RE", WINDOW_AUTOSIZE);
+    // namedWindow("Value IM", WINDOW_AUTOSIZE);
+    // double re_min, re_max, im_min, im_max;
+    // minMaxLoc(mandelbrot_value_re, &re_min, &re_max);
+    // imshow("Value RE", (mandelbrot_value_re-re_min)/(re_max-re_min));
+    // minMaxLoc(mandelbrot_value_im, &im_min, &im_max);
+    // imshow("Value IM", (mandelbrot_value_im-im_min)/(im_max-im_min));
+    // namedWindow("Mandelbrot", WINDOW_AUTOSIZE);
+    // imshow("Mandelbrot", mandelbrotMember);
 
-    waitKey(0);
+    // waitKey(0);
+
+    imwrite(outputPath, mandelbrotMember);
 
     return 0;
 }
