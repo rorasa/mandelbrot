@@ -1,9 +1,12 @@
 #include <iostream>
+#include <sstream>
 #include <vector>
+#include <chrono>
 #include <opencv2/opencv.hpp>
 
 using namespace std;
 using namespace cv;
+using namespace std::chrono;
 
 vector<Mat> complexMultiply(Mat old_re, Mat old_im){
     vector<Mat> z;
@@ -98,6 +101,8 @@ int main(int argc, char** argv) {
     }
 
     // Compute mandelbrot set
+
+    high_resolution_clock::time_point start_time = high_resolution_clock::now();
     for (int i=0; i<approx_iteration; i++){
         cout << "computing iteration " << i << endl;
         computeMandelbrot(mandelbrot_value_re,
@@ -105,8 +110,19 @@ int main(int argc, char** argv) {
                           mandelbrot_coordinates_re,
                           mandelbrot_coordinates_im);
 
+        
+
         if (viewer){
             mandelbrotMember = complexAbsolute(mandelbrot_value_re,mandelbrot_value_im) <= 2.0;
+
+            high_resolution_clock::time_point current_time = high_resolution_clock::now();
+            milliseconds ms = duration_cast<milliseconds>(current_time - start_time);
+            
+            stringstream time_text;
+            time_text << (double)ms.count()/1000.0 << " s";
+            putText(mandelbrotMember, time_text.str(), Point(20,(int)(30*(double)imageSize/800)),
+                FONT_HERSHEY_COMPLEX, (double)imageSize/1200.0, Scalar(255));
+
             imshow("Mandelbrot", mandelbrotMember);
             if (waitKey(30)=='q'){
                 break;
