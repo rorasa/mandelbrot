@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
         "{IU upper_img   | 2.0  | Upper bound of imaginary part}"
         "{IL lower_img   | -2.0 | Lower bound of imaginary part}"
         "{o output       | output.png | Name of the output image}"
+        "{V video        | false | Create animation video}"
         "{v view         | false | Display the output onscreen}";
     CommandLineParser parser(argc, argv, keys);
     parser.about("Mandelbrot Generator v0.2");
@@ -61,6 +62,7 @@ int main(int argc, char** argv) {
     double upper_limit_im = parser.get<double>("upper_img");
     String outputPath = parser.get<String>("o");
     bool viewer = parser.get<bool>("v");
+    bool video = parser.get<bool>("V");
 
     cout << "Generating Mandelbrot set with the following configuration:" << endl;
 
@@ -100,8 +102,21 @@ int main(int argc, char** argv) {
         namedWindow("Mandelbrot", WINDOW_AUTOSIZE);
     }
 
-    // Compute mandelbrot set
+    VideoWriter vidOut;
+    if (video){
+        vidOut = VideoWriter("output.mp4",
+                                     VideoWriter::fourcc('x','2','6','4'),
+                                     20.0,
+                                     Size(imageSize,imageSize),
+                                     true);
 
+        if (!vidOut.isOpened()){
+           cerr << "Error: Failed to open output video" << endl;
+           return -1;
+        }
+    }
+    
+    // Compute mandelbrot set
     high_resolution_clock::time_point start_time = high_resolution_clock::now();
     for (int i=0; i<approx_iteration; i++){
         cout << "computing iteration " << i << endl;
@@ -110,45 +125,33 @@ int main(int argc, char** argv) {
                           mandelbrot_coordinates_re,
                           mandelbrot_coordinates_im);
 
-        
-
-        if (viewer){
+        if (video || viewer){
             mandelbrotMember = complexAbsolute(mandelbrot_value_re,mandelbrot_value_im) <= 2.0;
 
             high_resolution_clock::time_point current_time = high_resolution_clock::now();
             milliseconds ms = duration_cast<milliseconds>(current_time - start_time);
-            
             stringstream time_text;
             time_text << (double)ms.count()/1000.0 << " s";
             putText(mandelbrotMember, time_text.str(), Point(20,(int)(30*(double)imageSize/800)),
                 FONT_HERSHEY_COMPLEX, (double)imageSize/1200.0, Scalar(255));
 
-            imshow("Mandelbrot", mandelbrotMember);
-            if (waitKey(30)=='q'){
-                break;
+            if (video){
+                Mat bgr = Mat(imageSize, imageSize, CV_8UC3);
+                cvtColor(mandelbrotMember, bgr, COLOR_GRAY2BGR);
+                vidOut.write(bgr);
+            }
+
+            if (viewer){
+                imshow("Mandelbrot", mandelbrotMember);
+                if (waitKey(30)=='q'){
+                    break;
+                }
             }
         }
     }
 
-    // find mandelbrot set membership
+    // Final image output
     mandelbrotMember = complexAbsolute(mandelbrot_value_re,mandelbrot_value_im) <= 2.0;
-    
-    // namedWindow("RE Coordinates", WINDOW_AUTOSIZE);
-    // imshow("RE Coordinates", mandelbrot_coordinates_re);
-    // namedWindow("IM Coordinates", WINDOW_AUTOSIZE);
-    // imshow("IM Coordinates", mandelbrot_coordinates_im);
-    // namedWindow("Value RE", WINDOW_AUTOSIZE);
-    // namedWindow("Value IM", WINDOW_AUTOSIZE);
-    // double re_min, re_max, im_min, im_max;
-    // minMaxLoc(mandelbrot_value_re, &re_min, &re_max);
-    // imshow("Value RE", (mandelbrot_value_re-re_min)/(re_max-re_min));
-    // minMaxLoc(mandelbrot_value_im, &im_min, &im_max);
-    // imshow("Value IM", (mandelbrot_value_im-im_min)/(im_max-im_min));
-    // namedWindow("Mandelbrot", WINDOW_AUTOSIZE);
-    // imshow("Mandelbrot", mandelbrotMember);
-
-    // waitKey(0);
-
     imwrite(outputPath, mandelbrotMember);
 
     return 0;
