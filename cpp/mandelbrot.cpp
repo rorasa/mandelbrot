@@ -26,22 +26,49 @@ void computeMandelbrot(Mat value_re, Mat value_im, Mat re_coordinates, Mat im_co
 }
 
 int main(int argc, char** argv) {
-    if (argc < 2){
-        cerr << "Please specify image size" << endl;
-        return -1;
+    const String keys = 
+        "{help h usage ? |      | print this message }"
+        "{@image_size    |      | image size (must be dividable by 4}"
+        "{n iteration    | 1000 | Number of iteration used for convergence approximation}"
+        "{RU upper_real  | 2.0  | Upper bound of real part}"
+        "{RL lower_real  | -2.0 | Lower bound of real part}"
+        "{IU upper_img   | 2.0  | Upper bound of imaginary part}"
+        "{IL lower_img   | -2.0 | Lower bound of imaginary part}";
+    CommandLineParser parser(argc, argv, keys);
+    parser.about("Mandelbrot Generator v0.2");
+
+    if (parser.has("help")){
+        parser.printMessage();
+        return 0;
     }
 
-    int imageSize = stoi(argv[1]);
+    if (!parser.check()){
+        parser.printErrors();
+        return 0;
+    }
+
+    int imageSize = parser.get<int>(0);
+    int approx_iteration = parser.get<int>("n");
+
+    double lower_limit_re = parser.get<double>("lower_real");
+    double upper_limit_re = parser.get<double>("upper_real");
+    double lower_limit_im = parser.get<double>("lower_img");
+    double upper_limit_im = parser.get<double>("upper_img");
+
+    cout << "Generating Mandelbrot set with the following configuration:" << endl;
+
+    cout << "Image size: " << imageSize <<" x " << imageSize << endl;
+    cout << "Iteration: "<< approx_iteration << endl;
+    cout << "Upper limit of real part: "<< upper_limit_re << endl;
+    cout << "Lower limit of real part: "<< lower_limit_re << endl;
+    cout << "Upper limit of imaginary part: "<< upper_limit_im << endl;
+    cout << "Lower limit of imaginary part: "<< lower_limit_im << endl;
+    cout << "-----------------------------------------------------------" << endl;
+
     if ((imageSize % 4)!=0){
-        cerr << "Image size should be dividable by 4" << endl;
+        cerr << "Error: Image size should be dividable by 4" << endl;
         return -1;
     }
-
-    int approx_iteration = 1000;
-    if (argc>=3){
-        approx_iteration = stoi(argv[2]);
-    }
-    cout<<"Mandelbrot value approximation iteration: "<< approx_iteration << endl;
 
     Mat mandelbrot_coordinates_re = Mat::ones(imageSize, imageSize, CV_64FC1);
     Mat mandelbrot_coordinates_im = Mat::ones(imageSize, imageSize, CV_64FC1);
@@ -50,15 +77,9 @@ int main(int argc, char** argv) {
     Mat outputImage = Mat::zeros(imageSize, imageSize, CV_8UC1);
 
     // Initialise target mandelbrot coordinates 
-    double lower_limit_re = -2;
-    double upper_limit_re = 2;
-    double lower_limit_im = -2;
-    double upper_limit_im = 2;
-
     double re_resolution = (double)imageSize/(upper_limit_re - lower_limit_re);
     double im_resolution = (double)imageSize/(upper_limit_im - lower_limit_im);
 
-    cout<< "re_resolution: " << re_resolution << ",im_resolution: " << im_resolution << endl;
     for (double i=0.0; i<imageSize; i++){
         double re = i/re_resolution + lower_limit_re;
         double im = i/im_resolution + lower_limit_im;
